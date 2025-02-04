@@ -1,4 +1,14 @@
 {
+  "name": "discord-bot",
+  "version": "1.0.0",
+  "description": "Created this bot for funzies cause i want my brain to suffer from stress",
+  "license": "MIT",
+  "author": "MiniGT",
+  "type": "commonjs",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
   "dependencies": {
     "discord.js": "^14.17.3",
     "dotenv": "^16.4.7"
