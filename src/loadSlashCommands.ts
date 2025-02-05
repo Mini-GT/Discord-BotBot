@@ -1,8 +1,11 @@
 import { REST, Routes } from 'discord.js';
 import fs from 'node:fs/promises'
 import path from 'node:path'
-import { fileURLToPath } from 'node:url';
-import { environmentalVariableTypes } from './types/environmentalVariable';
+import { environmentalVariableTypes } from './types/environmentalVariable.js';
+import { fileURLToPath, pathToFileURL } from 'url';
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
 export async function loadSlashCommands({
   token, 
@@ -16,9 +19,6 @@ export async function loadSlashCommands({
 
   const commands: any[] = [];
 
-  const __filename = fileURLToPath(import.meta.url);
-  const __dirname = path.dirname(__filename);
-  
   const foldersPath = path.join(__dirname, 'commands');
   const commandFolders = await fs.readdir(foldersPath);
 
@@ -27,14 +27,17 @@ export async function loadSlashCommands({
   for (const folder of commandFolders) {
     // Grab all the command files from the commands directory you created earlier
     const commandsPath = path.join(foldersPath, folder);
-    const commandFiles = (await fs.readdir(commandsPath)).filter(file => file.endsWith('.ts'));
+    const commandFiles = (await fs.readdir(commandsPath)).filter(file => file.endsWith('.js'));
     
     // Grab the SlashCommandBuilder#toJSON() output of each command's data for deployment
     for (const file of commandFiles) {
       const filePath = path.join(commandsPath, file);
 
-      const command = await import(`file://${filePath}`);
-      console.log(command)
+      // Convert to a valid file URL
+      const fileUrl = pathToFileURL(filePath).href;
+
+      const commandModule = await import(fileUrl);
+      const command = commandModule.default
       if ('data' in command && 'execute' in command) {
         commands.push(command.data.toJSON());
       } else {
@@ -48,12 +51,11 @@ export async function loadSlashCommands({
     console.log(`Started refreshing ${commands.length} application (/) commands.`);
 
     // fully refresh all commands in the guild with the current set
-    const data = await rest.put(
+    const data: any = await rest.put(
       Routes.applicationGuildCommands(clientId, guildId),
       { body: commands },
     );
-    console.log(data)
-    // console.log(`Successfully reloaded ${data.length} application (/) commands.`);
+    console.log(`Successfully reloaded ${data.length} application (/) commands.`);
   } catch (error) {
     // catch and log any errors!
     console.error(error);
