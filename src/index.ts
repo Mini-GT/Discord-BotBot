@@ -1,4 +1,4 @@
-import { Client, Collection, Events, GatewayIntentBits, MessageFlags } from 'discord.js';
+import { Client, Collection, GatewayIntentBits } from 'discord.js';
 import 'dotenv/config';
 import { environmentalVariableTypes } from './types/environmentalVariable.js';
 import { loadSlashCommands } from './loadSlashCommands.js';
@@ -12,6 +12,7 @@ const client = new Client({
     GatewayIntentBits.Guilds,
     GatewayIntentBits.GuildMessages,
     GatewayIntentBits.MessageContent,
+    GatewayIntentBits.GuildModeration
   ],
 });
 
@@ -38,52 +39,40 @@ for (const folder of commandFolders) {
   
   // Grab the SlashCommandBuilder#toJSON() output of each command's data for deployment
   for (const file of commandFiles) {
-    const filePath = path.join(commandsPath, file);
+    const commandfilePath = path.join(commandsPath, file);
 
     // Convert to a valid file URL
-    const fileUrl = pathToFileURL(filePath).href;
+    const fileUrl = pathToFileURL(commandfilePath).href;
 
     const commandModule = await import(fileUrl);
     const command = commandModule.default
     if ('data' in command && 'execute' in command) {
       client.commands.set(command.data.name, command);
     } else {
-      console.log(`[WARNING] The command at ${filePath} is missing a required "data" or "execute" property.`);
+      console.log(`[WARNING] The command at ${commandfilePath} is missing a required "data" or "execute" property.`);
     }
   }
 }
 
-client.once('ready', () => {
-  console.log(`Logged in as ${client.user?.tag}!`);
-});
+const eventsFolderPath = path.join(__dirname, 'events');
+const eventFiles = (await fs.readdir(eventsFolderPath)).filter(file => file.endsWith('.js'));
 
-// listens to slash commands in the server
-client.on(Events.InteractionCreate, async interaction => {
-	if (!interaction.isChatInputCommand()) return;
+for (const file of eventFiles) {
+  const eventsfilePath = path.join(eventsFolderPath, file);
 
-  const command = interaction.client.commands.get(interaction.commandName);
-
-  if (!command) {
-		console.error(`No command matching ${interaction.commandName} was found.`);
-		return;
-	}
-
-  try {
-		await command.execute(interaction);
-	} catch (error) {
-		console.error(error);
-		if (interaction.replied || interaction.deferred) {
-			await interaction.followUp({ content: 'There was an error while executing this command! Pls report the issue to the mods', flags: MessageFlags.Ephemeral });
-		} else {
-			await interaction.reply({ content: 'There was an error while executing this command! Pls report the issue to the mods', flags: MessageFlags.Ephemeral });
-		}
-	}
-});
-
-client.on('messageCreate', (message) => {
-  if (message.content === '!ping') {
-    message.reply('Pong!');
+  // Convert to a valid file URL
+  const fileUrl = pathToFileURL(eventsfilePath).href;
+  const eventModule = await import(fileUrl);
+  const event = eventModule.default
+  if (event.once) {
+    client.once(event.name, (...args) => event.execute(...args));
+  } else {
+    client.on(event.name, (...args) => event.execute(...args));
   }
-});
+}
+
+// const fetchedLogs = await guild.fetchAuditLogs();
+// const firstEntry = fetchedLogs.entries.first();
+
 
 client.login(ENV.token);
