@@ -1,6 +1,6 @@
 # Discord Botbot 🤖  
 
-A powerful Discord bot that **manages interactions ands moderates bad actors** to keep your server safe and engaged!  
+A Discord bot that **manages interactions ands moderates bad actors** to keep your server safe and engaged!  
 
 ## 🚀 Features  
 ### 🛡️ Moderation & Security  
