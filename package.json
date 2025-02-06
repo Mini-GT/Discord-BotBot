@@ -5,10 +5,12 @@
   "license": "MIT",
   "author": "MiniGT",
   "type": "module",
-  "main": "index.js",
+  "main": "./src/index.ts",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "start": "nodemon ./src/index.ts",
+    "build": "npx tsc",
+    "start": "node ./dist/index.js",
+    "dev": "nodemon --watch src --exec \"npm run build && npm start\"",
     "format": "prettier --write \"src/**/*.ts\"",
     "format:check": "prettier --check \"src/**/*.ts\""
   },
