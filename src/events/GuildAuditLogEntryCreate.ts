@@ -1,4 +1,4 @@
-import { AuditLogEvent, Events } from "discord.js";
+import { AuditLogEvent, ChannelType, Events, Guild, GuildAuditLogsEntry, Invite, User } from "discord.js";
 import 'dotenv/config';
 import getHour from "../globalUtils/getHour.js";
 
@@ -8,7 +8,7 @@ if(!auditLogChannelId) throw new Error('No audit log channel id provided')
 // listens to member bans
 export default {
   name: Events.GuildAuditLogEntryCreate,
-  async execute(_auditlog: any,guild: any) {
+  async execute(auditlog: GuildAuditLogsEntry, guild: Guild) {
     if (!guild) {
       console.error('Guild is undefined in guildAuditLogEntryCreate event.');
       return;
@@ -16,37 +16,83 @@ export default {
     try {
 
       const fetchedLogs = await guild.fetchAuditLogs({
-        type: AuditLogEvent,
+        type: auditlog.action,
         limit: 1,
       }); 
+
       const logsEntry = fetchedLogs.entries.first();
-      
+      if (!logsEntry) return;
+
       // Define the variables.
 	    const { action, executor, target, reason } = logsEntry;
-      const executerName = executor
+      const executorName  = executor as User
       const auditAction = AuditLogEvent[action]
+      const targetObj = target
+
+      // Get the audit log channel and check if it's a text channel
+      const channel = guild.channels.cache.get(auditLogChannelId);
+      if (!channel || channel.type !== ChannelType.GuildText) {
+        console.error('Audit log channel not found or is not a text channel');
+        return;
+      }
+
+      const auditLogChannel = channel;
 
       // send the message in the audit log channel
-      const auditLogChannel = await guild.channels.cache.get(auditLogChannelId)
+      if (!auditLogChannel) {
+        console.error('Audit log channel not found');
+        return;
+      }
+
       switch(action) {
-        case 40: // 'Invite Create'
-          auditLogChannel.send(`${executerName.globalName}(${executerName.username}) has created an invite. Invitation code: ${target.code}, Expiration: ${target.maxAge ? `${getHour(target.maxAge)}hr/s` : 'Never'}, Max Uses: ${target.maxUses ? target.maxUses : 'No Limit'}.`)
-          break
-        case 20: // Member Kick
-          auditLogChannel.send(`${executerName.globalName}(${executerName.username}) has ${auditAction} ${target.globalName}(${target.username}). Reason: ${reason ? reason : 'None'}`)
-          break
-        case 22: // Member Ban
-          auditLogChannel.send(`${executerName.globalName}(${executerName.username}) has Banned ${target.globalName}(${target.username}). Reason: ${reason ? reason : 'None'}`)
-          break
-        case 23: // Remove Member Ban 
-          auditLogChannel.send(`${executerName.globalName}(${executerName.username}) has Removed the Ban of ${target.globalName}(${target.username}). Reason: ${reason ? reason : 'None'}`)
-          break
-        default:
-          auditLogChannel.send(`${executerName.globalName}(${executerName.username}) has ${auditAction} ${target.globalName ? target.username : ''}.`)
+        case AuditLogEvent.InviteCreate: {
+          const inviteTarget = targetObj as Invite;
+          await auditLogChannel.send(
+            `${executorName.globalName}(${executorName.username}) has created an invite. ` +
+            `Invitation code: ${inviteTarget.code}, ` +
+            `Expiration: ${inviteTarget.maxAge ? `${getHour(inviteTarget.maxAge)}hr/s` : 'Never'}, ` +
+            `Max Uses: ${inviteTarget.maxUses ? inviteTarget.maxUses : 'No Limit'}.`
+          );
+          break;
+        }
+        case AuditLogEvent.MemberKick: {
+          const userTarget = targetObj as User;
+          await auditLogChannel.send(
+            `${executorName.globalName}(${executorName.username}) has ${auditAction} ` +
+            `${userTarget.globalName}(${userTarget.username}). ` +
+            `Reason: ${reason ?? 'None'}`
+          );
+          break;
+        }
+        case AuditLogEvent.MemberBanAdd: {
+          const userTarget = targetObj as User;
+          await auditLogChannel.send(
+            `${executorName.globalName}(${executorName.username}) has Banned ` +
+            `${userTarget.globalName}(${userTarget.username}). ` +
+            `Reason: ${reason ?? 'None'}`
+          );
+          break;
+        }
+        case AuditLogEvent.MemberBanRemove: {
+          const userTarget = targetObj as User;
+          await auditLogChannel.send(
+            `${executorName.globalName}(${executorName.username}) has Removed the Ban of ` +
+            `${userTarget.globalName}(${userTarget.username}). ` +
+            `Reason: ${reason ?? 'None'}`
+          );
+          break;
+        }
+        default: {
+          const userTarget = targetObj as User;
+          await auditLogChannel.send(
+            `${executorName.globalName}(${executorName.username}) has ${auditAction} ` +
+            `${userTarget.globalName ? userTarget.username : ''}.`
+          );
+        }
       }
       
     } catch (error) {
-      console.log(error)
+      console.error(error)
     }
   }
 }
