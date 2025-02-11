@@ -23,9 +23,13 @@ A Discord bot that **manages interactions and moderates bad actors** to keep you
    ```env
    DISCORD_TOKEN=your-bot-token
    GUILD_ID=your-guild-id
+   CLIENT_ID=your-client-id
+   HF_TOKEN=your-huggingface-token
+   AUDIT_LOG_CHANNEL_ID=your-guild-audit-log-channel-id
    ```  
 4. Run the bot:  
    ```sh
+   npm run build
    npm start
    ```  
 
