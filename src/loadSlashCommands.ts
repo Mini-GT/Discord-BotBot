@@ -12,7 +12,7 @@ export async function loadSlashCommands({
   clientId, 
   guildId
 }: environmentalVariableTypes) {
-
+  
   if(!token) throw new Error('No token provided')
   if(!clientId) throw new Error('No client ID provided')
   if(!guildId) throw new Error('No guild ID provided')
