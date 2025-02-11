@@ -16,7 +16,6 @@ export default {
     if (!commandName) return;
     const command = commandName.toLowerCase();
     
-    console.log(command)
     if (command === 'ping') {
       message.reply('pong');
     }
