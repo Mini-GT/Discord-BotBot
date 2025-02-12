@@ -5,7 +5,6 @@ export default {
 		.setName('user')
 		.setDescription('Provides information about the user.'),
 	async execute(interaction: ChatInputCommandInteraction) {
-    console.log(interaction)
 
 		const member = interaction.member as GuildMember | null;
 
