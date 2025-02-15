@@ -1,4 +1,14 @@
-import { ChatInputCommandInteraction, Events, MessageFlags } from "discord.js";
+import { ChatInputCommandInteraction, Client, Events, GatewayIntentBits, MessageFlags } from "discord.js";
+import 'dotenv/config'
+
+const client = new Client({
+  intents: [
+    GatewayIntentBits.Guilds,
+    GatewayIntentBits.GuildMessages,
+    GatewayIntentBits.MessageContent,
+    GatewayIntentBits.GuildModeration
+  ],
+});
 
 export default {
 	name: Events.InteractionCreate,
@@ -13,7 +23,8 @@ export default {
 		}
 
 		try {
-			await command.execute(interaction);
+      // passing client directly
+			await command.execute(interaction, client);
 		} catch (error) {
 			console.error(error);
 			if (interaction.replied || interaction.deferred) {
@@ -24,3 +35,5 @@ export default {
 		}
 	},
 };
+
+client.login(process.env.DISCORD_TOKEN);
