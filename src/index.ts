@@ -1,11 +1,11 @@
-import { Client, Collection, Events, GatewayIntentBits, MessageFlags } from 'discord.js';
+import { Client, Collection, EmbedBuilder, Events, GatewayIntentBits, MessageFlags, TextChannel } from 'discord.js';
 import 'dotenv/config';
 import { environmentalVariableTypes } from './types/environmentalVariable.js';
 import { loadSlashCommands } from './loadSlashCommands.js';
 import { fileURLToPath, pathToFileURL } from 'url';
 import path from 'node:path'
 import fs from 'node:fs/promises'
-
+import { WebcastPushConnection } from 'tiktok-live-connector';
 
 const client = new Client({
   intents: [
@@ -15,6 +15,10 @@ const client = new Client({
     GatewayIntentBits.GuildModeration
   ],
 });
+
+const tiktokLiveChannelId = process.env.TIKTOK_LIVE_CHANNEL_ID
+
+if(!tiktokLiveChannelId) throw new Error('No Live Channel Id provided')
 
 const ENV: environmentalVariableTypes = {
   token: process.env.DISCORD_TOKEN,
@@ -93,5 +97,86 @@ client.on(Events.InteractionCreate, async interaction => {
 	}
 });
 
+// Username of someone who is currently live
+let tiktokUsername = process.env.TIKTOK_USERNAME;
+if(!tiktokUsername) throw new Error('No tiktok username provided')
+	
+const prefix = "!"
+// Create a new wrapper object and pass the username
+let tiktokLiveConnection = new WebcastPushConnection(tiktokUsername, {fetchRoomInfoOnConnect: false});
+
+// Connect to the chat (await can be used as well)
+tiktokLiveConnection.connect().then(state => {
+    console.info(`Connected to roomId ${state.roomId}`);
+}).catch(err => {
+    console.error('Failed to connect', err);
+})
+
+// Define the events that you want to handle
+// In this case we listen to chat messages (comments)
+tiktokLiveConnection.on('chat', async data => {
+  if (data.comment.startsWith(prefix)) return;
+  try {
+    const tiktokLiveChannel = client.channels.cache.get(tiktokLiveChannelId);
+
+    if(!tiktokLiveChannel) throw new Error('No Tiktok Channel Id provided')
+
+		const tiktokLiveEmbed = new EmbedBuilder()
+		.setTitle(`${data.nickname}: ${data.comment}`)
+		.setColor(0x40E0D0)
+
+		await (tiktokLiveChannel as TextChannel).send({ embeds: [tiktokLiveEmbed] });
+  } catch (error) {
+    console.error('Error handling tiktok live:', error);
+  }
+})
+
+// And here we receive gifts sent to the streamer
+tiktokLiveConnection.on('gift', async data => {
+  try {
+		const tiktokLiveChannel = client.channels.cache.get(tiktokLiveChannelId);
+		const tiktokLiveEmbed = new EmbedBuilder()
+		.setTitle(`${data.nickname} ay nagbigay ng ${data.giftId}`)
+		.setDescription(`**MARAMING SALAMAT PO SA GIFT!!! <3**`)
+		.setColor(0x40E0D0)
+
+		await (tiktokLiveChannel as TextChannel).send({ embeds: [tiktokLiveEmbed] });
+		// console.log(`${data.nickname} joins the stream!`);
+	} catch (error) {
+		console.error('Error handling tiktok live gift:', error);
+	}
+    // console.log(`${data.uniqueId} (userId:${data.userId}) sends ${data.giftId}`);
+})
+
+tiktokLiveConnection.on('member', async data => {
+	try {
+		const tiktokLiveChannel = client.channels.cache.get(tiktokLiveChannelId);
+		const tiktokLiveEmbed = new EmbedBuilder()
+		.setTitle(`**${data.nickname}** ay sumali sa stream! Hello po welcome po <3`)
+		// .setDescription(`Hello Welcome po sa stream <3`)
+		.setColor(0x40E0D0)
+
+		await (tiktokLiveChannel as TextChannel).send({ embeds: [tiktokLiveEmbed] });
+		// console.log(`${data.nickname} joins the stream!`);
+	} catch (error) {
+		console.error('Error handling tiktok live member:', error);
+	}
+})
+
+tiktokLiveConnection.on('follow', async (data) => {
+  try {
+		const tiktokLiveChannel = client.channels.cache.get(tiktokLiveChannelId);
+		const tiktokLiveEmbed = new EmbedBuilder()
+		.setTitle(`${data.nickname} ay nag follow`)
+		.setDescription(`**MARAMING SALAMAT PO SA PAG FOLLOW!!! <3**`)
+		.setColor(0x40E0D0)
+
+		await (tiktokLiveChannel as TextChannel).send({ embeds: [tiktokLiveEmbed] });
+		// console.log(`${data.nickname} joins the stream!`);
+	} catch (error) {
+		console.error('Error handling tiktok live follow:', error);
+	}
+  // console.log(data.uniqueId, "followed!");
+})
 
 client.login(ENV.token);
