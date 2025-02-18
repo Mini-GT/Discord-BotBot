@@ -18,10 +18,11 @@
     "@huggingface/inference": "^3.3.0",
     "discord.js": "^14.17.3",
     "dotenv": "^16.4.7",
-    "nodemon": "^3.1.9"
+    "nodemon": "^3.1.9",
+    "tiktok-live-connector": "^1.2.3"
   },
   "devDependencies": {
-    "@types/node": "^22.13.0",
+    "@types/node": "^22.13.4",
     "@types/prettier": "^2.7.3",
     "eslint-config-prettier": "^10.0.1",
     "eslint-plugin-prettier": "^5.2.3",
