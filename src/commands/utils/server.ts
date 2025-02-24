@@ -6,8 +6,10 @@ export default {
     .setDescription('Provides information about the server.'),
   async execute(interaction: ChatInputCommandInteraction) {
     // interaction.guild is the object representing the Guild in which the command was run
-    if(interaction.guild) {
-      await interaction.reply(`This server is ${interaction.guild.name} and has ${interaction.guild.memberCount} members.`);
+    if (interaction.guild) {
+      await interaction.reply(
+        `This server is ${interaction.guild.name} and has ${interaction.guild.memberCount} members.`
+      );
     }
-  }
+  },
 };

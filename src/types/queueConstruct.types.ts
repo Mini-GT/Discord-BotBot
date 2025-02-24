@@ -1,9 +1,9 @@
 type Song = {
-  title: string
-  url: string
-  duration: string
-  requestedBy: string
-}
+  title: string;
+  url: string;
+  duration: string;
+  requestedBy: string;
+};
 
 export type QueueConstructType = {
   textChannel: any;
@@ -11,5 +11,4 @@ export type QueueConstructType = {
   connection: any;
   songs: Song[];
   playing: boolean;
-}
-
+};
