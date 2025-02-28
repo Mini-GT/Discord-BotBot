@@ -46,5 +46,10 @@ export default {
         message.reply('AWIT!!!! may error sa server');
       }
     }
+
+    if (command === 'review') {
+      const reviewMessage = args.join(' ').toLowerCase();
+      message.reply(reviewMessage);
+    }
   }
 }

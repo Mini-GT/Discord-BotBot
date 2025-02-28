@@ -112,6 +112,14 @@ tiktokLiveConnection.connect().then(state => {
     console.error('Failed to connect', err);
 })
 
+tiktokLiveConnection.on('connected', state => {
+    console.log('Hurray! Connected!', state);
+})
+
+tiktokLiveConnection.on('disconnected', () => {
+    console.log('Disconnected :(');
+})
+
 // Define the events that you want to handle
 // In this case we listen to chat messages (comments)
 tiktokLiveConnection.on('chat', async data => {
