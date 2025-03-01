@@ -26,6 +26,10 @@ A Discord bot that **manages interactions and moderates bad actors** to keep you
    CLIENT_ID=your-client-id
    HF_TOKEN=your-huggingface-token
    AUDIT_LOG_CHANNEL_ID=your-guild-audit-log-channel-id
+   SPOTIFY_CLIENT_ID=your-spotify-client-id
+   SPOTIFY_CLIENT_SECRET=your-spotify-client-secret
+   TIKTOK_LIVE_CHANNEL_ID=your-tiktok-live-channel-id
+   TIKTOK_USERNAME=your-tiktok-username
    ```  
 4. Run the bot:  
    ```sh
