@@ -1,4 +1,4 @@
-type Song = {
+export type Song = {
   title: string;
   url: string;
   duration: string;
