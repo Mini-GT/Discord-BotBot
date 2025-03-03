@@ -1,14 +1,21 @@
-import { Channel, Client, EmbedBuilder, Events, GatewayIntentBits, Message, TextChannel, VoiceChannel } from "discord.js";
+import { Client, EmbedBuilder, Events, GatewayIntentBits, Message, TextChannel } from "discord.js";
 import { getChatResponse } from "../AI/getChatResponse.js";
 import ytdl from '@distube/ytdl-core'
 import { isSpotifyUrl } from "../globalUtils/spotify/isSpotifyUrl.js";
 import { spotifyToYouTube } from "../globalUtils/spotify/spotifyToYoutube.js";
-import { createAudioPlayer, createAudioResource, generateDependencyReport, getVoiceConnection, joinVoiceChannel, NoSubscriberBehavior, StreamType } from "@discordjs/voice";
+import { createAudioPlayer, createAudioResource, joinVoiceChannel } from "@discordjs/voice";
 import { QueueConstructType, Song } from "../types/queueConstruct.types.js";
 import play from 'play-dl'
+import fs from 'node:fs/promises';
+import path from "node:path";
+import { fileURLToPath } from 'node:url';
 
 const guildId = process.env.GUILD_ID
 const prefix = '!'
+const __dirname = path.dirname(fileURLToPath(import.meta.url));
+const cookiesPath = path.join(__dirname, '../../cookies.json');
+const cookiesData = await fs.readFile(cookiesPath, 'utf8');
+const agent = ytdl.createAgent(JSON.parse(cookiesData))
 
 const client = new Client({
   intents: [
@@ -115,7 +122,7 @@ export default {
 					videoUrl = searched[0].url
         }
 
-        const videoInfo = await ytdl.getInfo(videoUrl);
+        const videoInfo = await ytdl.getInfo(videoUrl, { agent });
 
         const song = {
           title: songInfo ? `${songInfo.name} - ${songInfo.artists[0].name}` : videoInfo.videoDetails.title,
@@ -135,7 +142,6 @@ export default {
         
           queue.set(message.guild.id, queueConstruct);
           queueConstruct.songs.push(song);
-          console.log(message.member.voice.channel.id)
           try {
             const connection = joinVoiceChannel({
               channelId: message.member.voice.channel.id,
