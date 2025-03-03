@@ -19,7 +19,7 @@ const cookiesData = await fs.readFile(cookiesPath, 'utf8');
 const cookies = JSON.parse(cookiesData)
 const proxy = process.env.PROXY;
 if(!proxy) throw new Error("No proxy provded")
-const agent = ytdl.createProxyAgent({ uri: proxy}, cookies)
+const ytdlAgent = ytdl.createProxyAgent({ uri: proxy}, cookies)
 // const agent = ytdl.createAgent(JSON.parse(cookiesData))
 
 
@@ -128,7 +128,7 @@ export default {
 					videoUrl = searched[0].url
         }
 
-        const videoInfo = await ytdl.getBasicInfo(videoUrl, { agent });
+        const videoInfo = await ytdl.getBasicInfo(videoUrl, { agent: ytdlAgent });
 
         const song = {
           title: songInfo ? `${songInfo.name} - ${songInfo.artists[0].name}` : videoInfo.videoDetails.title,
@@ -225,6 +225,7 @@ export default {
           // filter: 'audioonly',
           quality: 'highestaudio',
           highWaterMark: 1 << 25,
+          agent: ytdlAgent,
         });
 
         //------------For ytdl------------
