@@ -3,7 +3,7 @@ import { getChatResponse } from "../AI/getChatResponse.js";
 import ytdl from '@distube/ytdl-core'
 import { isSpotifyUrl } from "../globalUtils/spotify/isSpotifyUrl.js";
 import { spotifyToYouTube } from "../globalUtils/spotify/spotifyToYoutube.js";
-import { createAudioPlayer, createAudioResource, joinVoiceChannel } from "@discordjs/voice";
+import { createAudioPlayer, createAudioResource, joinVoiceChannel, StreamType } from "@discordjs/voice";
 import { QueueConstructType, Song } from "../types/queueConstruct.types.js";
 import play from 'play-dl'
 import fs from 'node:fs/promises';
@@ -213,12 +213,14 @@ export default {
     	// }
 
     	try {
+        // -------DO NOT USE THIS CAUSE PLAYDL IS USING OPUS AND MOST OPUS PACKAGES ARE DEPRECATED AND NO LONGER SUPPORTED-------
         // const stream = await play.stream(song.url);
-        
         //------------For playdl------------
     		// const resource = createAudioResource(stream.stream, {
-        //   inputType: stream.type,
+        //   inputType: StreamType.OggOpus,
+        //   inlineVolume: true,
         // });
+        // resource.volume?.setVolume(0.5);
 
         const stream = ytdl(song.url, {
           // fix issue[temporary]: https://github.com/distubejs/ytdl-core/issues/201#issuecomment-2669944639
