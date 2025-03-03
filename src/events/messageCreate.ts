@@ -128,7 +128,7 @@ export default {
 					videoUrl = searched[0].url
         }
 
-        const videoInfo = await ytdl.getInfo(videoUrl, { agent });
+        const videoInfo = await ytdl.getBasicInfo(videoUrl, { agent });
 
         const song = {
           title: songInfo ? `${songInfo.name} - ${songInfo.artists[0].name}` : videoInfo.videoDetails.title,
