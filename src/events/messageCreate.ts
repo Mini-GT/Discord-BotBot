@@ -1,4 +1,4 @@
-import { Client, EmbedBuilder, Events, GatewayIntentBits, Message, TextChannel } from "discord.js";
+import { Channel, Client, EmbedBuilder, Events, GatewayIntentBits, Guild, GuildMember, Message, TextChannel } from "discord.js";
 import { getChatResponse } from "../AI/getChatResponse.js";
 import ytdl from '@distube/ytdl-core'
 import { isSpotifyUrl } from "../globalUtils/spotify/isSpotifyUrl.js";
@@ -175,34 +175,37 @@ export default {
         console.log(error);
     	  return message.reply('An error occurred while processing your request!');
       }
+    } else if (command === 'stop') {
+      stopSong(message, serverQueue);
     }
 
     async function playSong(guild: string, song: Song) {
+      console.log(song)
     	const serverQueue = queue.get(guild);
       // const connection = getVoiceConnection(guild);
 
-    	if (!song) {
-    		// Start a 5-minute timeout before disconnecting
-    		serverQueue.timeout = setTimeout(async () => {
-    			try {
-    				// Send a message to the text channel before leaving
-    				await serverQueue.textChannel.send('Leaving the voice channel due to inactivity. Goodbye! 👋');
-    			} catch (error) {
-    				console.error('Failed to send leave message:', error);
-    			}
+    	// if (!song) {
+    	// 	// Start a 5-minute timeout before disconnecting
+    	// 	serverQueue.timeout = setTimeout(async () => {
+    	// 		try {
+    	// 			// Send a message to the text channel before leaving
+    	// 			await serverQueue.textChannel.send('Leaving the voice channel due to inactivity. Goodbye! 👋');
+    	// 		} catch (error) {
+    	// 			console.error('Failed to send leave message:', error);
+    	// 		}
 
-    			serverQueue.connection.destroy();
-    			queue.delete(guild);
-    			console.log(`Left the voice channel due to inactivity.`);
-    		}, 5 * 60 * 1000);
-    		return;
-    	}
+    	// 		serverQueue.connection.destroy();
+    	// 		queue.delete(guild);
+    	// 		console.log(`Left the voice channel due to inactivity.`);
+    	// 	}, 5 * 60 * 1000);
+    	// 	return;
+    	// }
 
-    	// Clear the timeout if a new song is being played
-    	if (serverQueue.timeout) {
-    		clearTimeout(serverQueue.timeout);
-    		serverQueue.timeout = null;
-    	}
+    	// // Clear the timeout if a new song is being played
+    	// if (serverQueue.timeout) {
+    	// 	clearTimeout(serverQueue.timeout);
+    	// 	serverQueue.timeout = null;
+    	// }
 
     	try {
         // const stream = await play.stream(song.url);
@@ -213,7 +216,8 @@ export default {
         // });
 
         const stream = ytdl(song.url, {
-          filter: 'audioonly',
+          // fix issue[temporary]: https://github.com/distubejs/ytdl-core/issues/201#issuecomment-2669944639
+          // filter: 'audioonly',
           quality: 'highestaudio',
           highWaterMark: 1 << 25,
         });
@@ -261,6 +265,23 @@ export default {
         playSong(guild, serverQueue.songs[0]);
     	}
     };
+
+    function stopSong(message: Message, serverQueue: any) {
+      if(!message.member || !message.guild) throw new Error('Cannot find message')
+
+      if (!message.member.voice.channel) {
+      		return message.reply('You need to be in a voice channel to stop the music!');
+      }
+
+      if (!serverQueue) {
+        return message.reply('There is no song playing!');
+      }
+
+      message.reply('copy master🫡')
+      serverQueue.songs = [];
+      serverQueue.connection.destroy();
+      queue.delete(message.guild.id);
+    }
   }
 }
 
