@@ -109,11 +109,11 @@ const prefix = "!"
 let tiktokLiveConnection = new WebcastPushConnection(tiktokUsername, {fetchRoomInfoOnConnect: false});
 
 // Connect to the chat (await can be used as well)
-tiktokLiveConnection.connect().then(state => {
-    console.info(`Connected to roomId ${state.roomId}`);
-}).catch(err => {
-    console.error('Failed to connect', err);
-})
+// tiktokLiveConnection.connect().then(state => {
+//     console.info(`Connected to roomId ${state.roomId}`);
+// }).catch(err => {
+//     console.error('Failed to connect', err);
+// })
 
 tiktokLiveConnection.on('connected', state => {
     console.log('Hurray! Connected!', state);
