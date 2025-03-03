@@ -1,4 +1,4 @@
-import { Channel, Client, EmbedBuilder, Events, GatewayIntentBits, Guild, GuildMember, Message, TextChannel } from "discord.js";
+import { Client, EmbedBuilder, Events, GatewayIntentBits, Message, TextChannel } from "discord.js";
 import { getChatResponse } from "../AI/getChatResponse.js";
 import ytdl from '@distube/ytdl-core'
 import { isSpotifyUrl } from "../globalUtils/spotify/isSpotifyUrl.js";
@@ -10,12 +10,18 @@ import fs from 'node:fs/promises';
 import path from "node:path";
 import { fileURLToPath } from 'node:url';
 
+
 const guildId = process.env.GUILD_ID
 const prefix = '!'
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const cookiesPath = path.join(__dirname, '../../cookies.json');
 const cookiesData = await fs.readFile(cookiesPath, 'utf8');
-const agent = ytdl.createAgent(JSON.parse(cookiesData))
+const cookies = JSON.parse(cookiesData)
+const proxy = process.env.PROXY;
+if(!proxy) throw new Error("No proxy provded")
+const agent = ytdl.createProxyAgent({ uri: proxy}, cookies)
+// const agent = ytdl.createAgent(JSON.parse(cookiesData))
+
 
 const client = new Client({
   intents: [
