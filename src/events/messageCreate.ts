@@ -182,30 +182,29 @@ export default {
     async function playSong(guild: string, song: Song) {
       console.log(song)
     	const serverQueue = queue.get(guild);
-      // const connection = getVoiceConnection(guild);
 
-    	// if (!song) {
-    	// 	// Start a 5-minute timeout before disconnecting
-    	// 	serverQueue.timeout = setTimeout(async () => {
-    	// 		try {
-    	// 			// Send a message to the text channel before leaving
-    	// 			await serverQueue.textChannel.send('Leaving the voice channel due to inactivity. Goodbye! 👋');
-    	// 		} catch (error) {
-    	// 			console.error('Failed to send leave message:', error);
-    	// 		}
+    	if (!song) {
+    		// Start a 5-minute timeout before disconnecting
+    		serverQueue.timeout = setTimeout(async () => {
+    			try {
+    				// Send a message to the text channel before leaving
+    				await serverQueue.textChannel.send('Leaving the voice channel due to inactivity. Goodbye! 👋');
+    			} catch (error) {
+    				console.error('Failed to send leave message:', error);
+    			}
 
-    	// 		serverQueue.connection.destroy();
-    	// 		queue.delete(guild);
-    	// 		console.log(`Left the voice channel due to inactivity.`);
-    	// 	}, 5 * 60 * 1000);
-    	// 	return;
-    	// }
+    			serverQueue.connection.destroy();
+    			// queue.delete(guild);
+    			console.log(`Left the voice channel due to inactivity.`);
+    		}, 5 * 60 * 1000);
+    		return;
+    	}
 
-    	// // Clear the timeout if a new song is being played
-    	// if (serverQueue.timeout) {
-    	// 	clearTimeout(serverQueue.timeout);
-    	// 	serverQueue.timeout = null;
-    	// }
+    	// Clear the timeout if a new song is being played
+    	if (serverQueue.timeout) {
+    		clearTimeout(serverQueue.timeout);
+    		serverQueue.timeout = null;
+    	}
 
     	try {
         // const stream = await play.stream(song.url);
