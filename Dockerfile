@@ -1,6 +1,9 @@
 # Use Node.js version 23 with Alpine Linux as the base image
 # Alpine is a lightweight Linux distribution, making the final image smaller
-FROM node:23-alpine
+FROM node:20-alpine
+
+# Avoid deprecated dependencies
+RUN apk add --no-cache python3 make g++
 
 # Set the working directory inside the container to /app
 WORKDIR /app
