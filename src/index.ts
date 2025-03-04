@@ -10,6 +10,8 @@ import { WebcastPushConnection } from 'tiktok-live-connector';
 const client = new Client({
   intents: [
     GatewayIntentBits.Guilds,
+    GatewayIntentBits.GuildModeration,
+    GatewayIntentBits.GuildMembers,
     GatewayIntentBits.GuildMessages,
     GatewayIntentBits.MessageContent,
     GatewayIntentBits.GuildModeration,
@@ -78,27 +80,27 @@ for (const file of eventFiles) {
   }
 }
 
-client.on(Events.InteractionCreate, async interaction => {
-	if (!interaction.isChatInputCommand()) return;
+// client.on(Events.InteractionCreate, async interaction => {
+// 	if (!interaction.isChatInputCommand()) return;
 
-	const command = interaction.client.commands.get(interaction.commandName);
+// 	const command = interaction.client.commands.get(interaction.commandName);
 
-	if (!command) {
-		console.error(`No command matching ${interaction.commandName} was found.`);
-		return;
-	}
+// 	if (!command) {
+// 		console.error(`No command matching ${interaction.commandName} was found.`);
+// 		return;
+// 	}
 
-	try {
-		await command.execute(interaction);
-	} catch (error) {
-		console.error(error);
-		if (interaction.replied || interaction.deferred) {
-			await interaction.followUp({ content: 'There was an error while executing this command!', flags: MessageFlags.Ephemeral });
-		} else {
-			await interaction.reply({ content: 'There was an error while executing this command!', flags: MessageFlags.Ephemeral });
-		}
-	}
-});
+// 	try {
+// 		await command.execute(interaction);
+// 	} catch (error) {
+// 		console.error(error);
+// 		if (interaction.replied || interaction.deferred) {
+// 			await interaction.followUp({ content: 'There was an error while executing this command!', flags: MessageFlags.Ephemeral });
+// 		} else {
+// 			await interaction.reply({ content: 'There was an error while executing this command!', flags: MessageFlags.Ephemeral });
+// 		}
+// 	}
+// });
 
 // Username of someone who is currently live
 let tiktokUsername = process.env.TIKTOK_USERNAME;
