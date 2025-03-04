@@ -88,7 +88,7 @@ export default {
     
     // play command
     const serverQueue = queue.get(guildId);
-
+    console.log(command)
     if(command === 'play') {
       // Get the user's input (the rest of the message)
       const query = args.join(' ').toLowerCase();
