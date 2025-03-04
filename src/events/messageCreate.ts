@@ -3,7 +3,7 @@ import { getChatResponse } from "../AI/getChatResponse.js";
 import ytdl from '@distube/ytdl-core'
 import { isSpotifyUrl } from "../globalUtils/spotify/isSpotifyUrl.js";
 import { spotifyToYouTube } from "../globalUtils/spotify/spotifyToYoutube.js";
-import { createAudioPlayer, createAudioResource, joinVoiceChannel, StreamType } from "@discordjs/voice";
+import { createAudioPlayer, createAudioResource, joinVoiceChannel } from "@discordjs/voice";
 import { QueueConstructType, Song } from "../types/queueConstruct.types.js";
 import play from 'play-dl'
 import fs from 'node:fs/promises';
@@ -19,8 +19,8 @@ const cookiesData = await fs.readFile(cookiesPath, 'utf8');
 const cookies = JSON.parse(cookiesData)
 const proxy = process.env.PROXY;
 if(!proxy) throw new Error("No proxy provded")
-const ytdlAgent = ytdl.createProxyAgent({ uri: proxy}, cookies)
-// const agent = ytdl.createAgent(JSON.parse(cookiesData))
+// const ytdlAgent = ytdl.createProxyAgent({ uri: proxy}, cookies)
+const agent = ytdl.createAgent(JSON.parse(cookiesData))
 
 
 const client = new Client({
@@ -128,7 +128,7 @@ export default {
 					videoUrl = searched[0].url
         }
 
-        const videoInfo = await ytdl.getInfo(videoUrl);
+        const videoInfo = await ytdl.getInfo(videoUrl, { agent });
 
         const song = {
           title: songInfo ? `${songInfo.name} - ${songInfo.artists[0].name}` : videoInfo.videoDetails.title,
@@ -136,7 +136,7 @@ export default {
           duration: videoInfo.videoDetails.lengthSeconds,
           requestedBy: message.author.tag
         };
-        
+        console.log(song)
         if (!serverQueue) {
           const queueConstruct: QueueConstructType = {
             textChannel: message.member.voice.channel,
@@ -183,12 +183,16 @@ export default {
       }
     } else if (command === 'stop') {
       stopSong(message, serverQueue);
+    } else if (command === 'skip') {
+      skipSong(message, serverQueue);
+    } else if (command === 'queue') {
+    	displayQueue(message, serverQueue);
     }
+    
 
     async function playSong(guild: string, song: Song) {
-      console.log(song)
+      // console.log(song)
     	const serverQueue = queue.get(guild);
-
     	if (!song) {
     		// Start a 5-minute timeout before disconnecting
     		// serverQueue.timeout = setTimeout(async () => {
@@ -227,11 +231,16 @@ export default {
           // filter: 'audioonly',
           quality: 'highestaudio',
           highWaterMark: 1 << 25,
+          requestOptions: {
+            headers: {
+              'User-Agent': 'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/133.0.0.0 Safari/537.36',
+              'Cookie': cookiesData
+            }
+          }
         });
 
         //------------For ytdl------------
         const resource = createAudioResource(stream);
-
     		const player = createAudioPlayer();
 
     		player.play(resource);
@@ -289,6 +298,43 @@ export default {
       serverQueue.songs = [];
       serverQueue.connection.destroy();
       queue.delete(message.guild.id);
+    }
+
+    function skipSong(message: Message, serverQueue: any) {
+      if (!message.member?.voice.channel) {
+      		return message.reply('You need to be in a voice channel to skip songs!');
+      }
+      if (!serverQueue) {
+      		return message.reply('There are no songs to skip!');
+      }
+      if (!serverQueue) {
+        return message.reply('There are no songs to skip!');
+      }
+      // console.log(serverQueue)
+      if(!message.guild) {
+        return message.reply('No Guild Id provided')
+      }
+      message.reply('song skipped')
+      serverQueue.songs.shift();
+      
+      playSong(message.guild.id, serverQueue.songs[0]);
+    }
+
+    function displayQueue(message: Message, serverQueue: any) {
+      if (!serverQueue || !serverQueue.songs.length) {
+        return message.reply('There are no songs in the queue!');
+      }
+    
+      const embed = new EmbedBuilder()
+        .setColor('#1DB954')
+        .setTitle('Music Queue')
+        .setDescription(
+          serverQueue.songs
+            .map((song: Song, index: number) => `${index + 1}. ${song.title} (Requested by: ${song.requestedBy})`)
+            .join('\n')
+        );
+    
+      message.reply({ embeds: [embed] });
     }
   }
 }
